@@ -83,16 +83,13 @@ package org.robotlegs.base
 				{
 					if (!viewComponent['isActive'])
 					{
-						//needs to cleanup on onRemove
-						IEventDispatcher(viewComponent).addEventListener('viewActivate', onViewActivate);
+						IEventDispatcher(viewComponent).addEventListener('viewActivate', _onViewActivate);
 					} else
 					{
-						//deactivate needs to cleanup onRemove
-						IEventDispatcher(viewComponent).addEventListener('viewDeactivate', onViewDeactivate);
+						IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
 					}
-					
-					IEventDispatcher(viewComponent).addEventListener('deactivate', onDeactivate);
-					IEventDispatcher(viewComponent).addEventListener('removing', onRemoving);
+					IEventDispatcher(viewComponent).addEventListener('deactivate', _onDeactivate);
+					IEventDispatcher(viewComponent).addEventListener('removing', _onRemoving);
 				}
 				else if (!viewComponent['initialized'])
 				{
@@ -205,51 +202,45 @@ package org.robotlegs.base
 				onRegister();
 		}
 		
-		public function onActivate(event:Event):void
+		private function _onActivate(event:Event):void
 		{
-			trace(this, 'app activate');
-			IEventDispatcher(event.target).removeEventListener('activate', onActivate, false);
+			IEventDispatcher(event.target).removeEventListener('activate', _onActivate, false);
+			IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
+			IEventDispatcher(viewComponent).addEventListener('deactivate', _onDeactivate);
 			
-			preRegister();
+			removed = false;
+
+			onRegister();
 		}
 		
-		public function onDeactivate(event:Event):void
+		private function _onDeactivate(event:Event):void
 		{
-			trace(this, 'app deactivate');
-			IEventDispatcher(event.target).addEventListener('activate', onActivate);
-			IEventDispatcher(event.target).removeEventListener('deactivate', onDeactivate);
+			IEventDispatcher(event.target).removeEventListener('deactivate', _onDeactivate);
+			IEventDispatcher(event.target).addEventListener('activate', _onActivate);
 		}
 		
-		public function onViewActivate(event:Event):void
+		private function _onViewActivate(event:Event):void
 		{
-			trace(this, 'view activate');
-			IEventDispatcher(event.target).removeEventListener('viewActivate', onViewActivate);
+			IEventDispatcher(event.target).removeEventListener('viewActivate', _onViewActivate);
 
 			if (!removed)
 				onRegister();
 		}
 		
-		public function onViewDeactivate(event:Event):void
+		private function _onViewDeactivate(event:Event):void
 		{
-			trace(this, 'view deactivate');
-			IEventDispatcher(event.target).removeEventListener('viewDeactivate', onViewDeactivate);
-			//need to dispose of other handlers
+			IEventDispatcher(event.target).removeEventListener('viewDeactivate', _onViewDeactivate);
+
 			preRemove();
 		}
 		
-		public function onRemoving(event:Event):void
+		private function _onRemoving(event:Event):void
 		{
-			trace(this, 'removing all mobile handlers');
-			removeMobileHandlers(IEventDispatcher(event.target));
-		}
-		
-		public function removeMobileHandlers(dispatcher:IEventDispatcher):void
-		{
-			IEventDispatcher(dispatcher).removeEventListener('activate', onActivate);
-			IEventDispatcher(dispatcher).removeEventListener('deactivate', onDeactivate);
-			IEventDispatcher(dispatcher).removeEventListener('viewActivate', onViewActivate);
-			IEventDispatcher(dispatcher).removeEventListener('viewDeactivate', onViewDeactivate);
-			IEventDispatcher(dispatcher).removeEventListener('removing', onRemoving);
+			IEventDispatcher(event.target).removeEventListener('activate', _onActivate);
+			IEventDispatcher(event.target).removeEventListener('deactivate', _onDeactivate);
+			IEventDispatcher(event.target).removeEventListener('viewActivate', _onViewActivate);
+			IEventDispatcher(event.target).removeEventListener('viewDeactivate', _onViewDeactivate);
+			IEventDispatcher(event.target).removeEventListener('removing', _onRemoving);
 		}
 	
 	}
