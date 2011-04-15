@@ -24,9 +24,19 @@ package org.robotlegs.base
 		protected static var UIComponentClass:Class;
 		
 		/**
+		 * Mobile framework work-around part #1
+		 */
+		protected static var ViewClass:Class
+		
+		/**
 		 * Flex framework work-around part #2
 		 */
 		protected static const flexAvailable:Boolean = checkFlex();
+
+		/**
+		 * Flex framework work-around part #2
+		 */
+		protected static const mobileAvailable:Boolean = checkMobile();
 		
 		/**
 		 * Internal
@@ -67,9 +77,33 @@ package org.robotlegs.base
 		{
 			removed = false;
 			
-			if (flexAvailable && (viewComponent is UIComponentClass) && !viewComponent['initialized'])
+			if (flexAvailable && (viewComponent is UIComponentClass))
 			{
-				IEventDispatcher(viewComponent).addEventListener('creationComplete', onCreationComplete, false, 0, true);
+				if (mobileAvailable && (viewComponent is ViewClass))	//mediating a mobile View
+				{
+					if (!viewComponent['isActive'])
+					{
+						//needs to cleanup on onRemove
+						IEventDispatcher(viewComponent).addEventListener('viewActivate', onViewActivate);
+					} else
+					{
+						//deactivate needs to cleanup onRemove
+						IEventDispatcher(viewComponent).addEventListener('viewDeactivate', onViewDeactivate);
+					}
+					
+					IEventDispatcher(viewComponent).addEventListener('deactivate', onDeactivate);
+					IEventDispatcher(viewComponent).addEventListener('removing', onRemoving);
+				}
+				else if (!viewComponent['initialized'])
+				{
+					IEventDispatcher(viewComponent).addEventListener('creationComplete', onCreationComplete, false, 0, true);
+				}				
+				//if the mobile view is active or the component is initialized 
+				if (viewComponent['initialized'] || viewComponent['isActive'])
+				{
+					onRegister();	
+				}
+				
 			}
 			else
 			{
@@ -139,6 +173,24 @@ package org.robotlegs.base
 		}
 		
 		/**
+		 * Mobile framework work-around part #1
+		 *
+		 * <p>Checks for availability of the Mobile framework by trying to get the class for View.</p>
+		 */
+		protected static function checkMobile():Boolean
+		{
+			try
+			{
+				ViewClass = getDefinitionByName('spark.components::View') as Class;
+			}
+			catch (error:Error)
+			{
+				// do nothing
+			}
+			return ViewClass != null;
+		}
+		
+		/**
 		 * Flex framework work-around part #4
 		 *
 		 * <p><code>FlexEvent.CREATION_COMPLETE</code> handler for this Mediator's View Component</p>
@@ -151,6 +203,53 @@ package org.robotlegs.base
 			
 			if (!removed)
 				onRegister();
+		}
+		
+		public function onActivate(event:Event):void
+		{
+			trace(this, 'app activate');
+			IEventDispatcher(event.target).removeEventListener('activate', onActivate, false);
+			
+			preRegister();
+		}
+		
+		public function onDeactivate(event:Event):void
+		{
+			trace(this, 'app deactivate');
+			IEventDispatcher(event.target).addEventListener('activate', onActivate);
+			IEventDispatcher(event.target).removeEventListener('deactivate', onDeactivate);
+		}
+		
+		public function onViewActivate(event:Event):void
+		{
+			trace(this, 'view activate');
+			IEventDispatcher(event.target).removeEventListener('viewActivate', onViewActivate);
+
+			if (!removed)
+				onRegister();
+		}
+		
+		public function onViewDeactivate(event:Event):void
+		{
+			trace(this, 'view deactivate');
+			IEventDispatcher(event.target).removeEventListener('viewDeactivate', onViewDeactivate);
+			//need to dispose of other handlers
+			preRemove();
+		}
+		
+		public function onRemoving(event:Event):void
+		{
+			trace(this, 'removing all mobile handlers');
+			removeMobileHandlers(IEventDispatcher(event.target));
+		}
+		
+		public function removeMobileHandlers(dispatcher:IEventDispatcher):void
+		{
+			IEventDispatcher(dispatcher).removeEventListener('activate', onActivate);
+			IEventDispatcher(dispatcher).removeEventListener('deactivate', onDeactivate);
+			IEventDispatcher(dispatcher).removeEventListener('viewActivate', onViewActivate);
+			IEventDispatcher(dispatcher).removeEventListener('viewDeactivate', onViewDeactivate);
+			IEventDispatcher(dispatcher).removeEventListener('removing', onRemoving);
 		}
 	
 	}
