@@ -170,7 +170,7 @@ package org.robotlegs.base
 		}
 		
 		/**
-		 * Mobile framework work-around part #1
+		 * Mobile framework work-around part #3
 		 *
 		 * <p>Checks for availability of the Mobile framework by trying to get the class for View.</p>
 		 */
@@ -202,6 +202,13 @@ package org.robotlegs.base
 				onRegister();
 		}
 		
+		/**
+		 * Mobile framework work-around part #4
+		 *
+ 		 * <p><code>Event.ACTIVATE</code> handler for this Mediator's View Component</p>
+		 *
+		 * @param event The Flex <code>Event</code> event
+		 */
 		private function _onActivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('activate', _onActivate, false);
@@ -213,12 +220,26 @@ package org.robotlegs.base
 			onRegister();
 		}
 		
+		/**
+		 * Mobile framework work-around part #5
+		 *
+ 		 * <p><code>Event.DEACTIVATE</code> handler for this Mediator's View Component</p>
+		 *
+		 * @param event The Flex <code>Event</code> event
+		 */
 		private function _onDeactivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('deactivate', _onDeactivate);
 			IEventDispatcher(event.target).addEventListener('activate', _onActivate);
 		}
 		
+		/**
+		 * Mobile framework work-around part #6
+		 *
+ 		 * <p><code>ViewNavigatorEvent.VIEW_ACTIVATE</code> handler for this Mediator's View Component</p>
+		 *
+		 * @param event The Flex <code>ViewNavigatorEvent</code> event
+		 */
 		private function _onViewActivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('viewActivate', _onViewActivate);
@@ -227,6 +248,13 @@ package org.robotlegs.base
 				onRegister();
 		}
 		
+		/**
+		 * Mobile framework work-around part #7
+		 *
+  		 * <p><code>ViewNavigatorEvent.VIEW_DEACTIVATE</code> handler for this Mediator's View Component</p>
+		 *
+		 * @param event The Flex <code>ViewNavigatorEvent</code> event
+		 */
 		private function _onViewDeactivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('viewDeactivate', _onViewDeactivate);
@@ -234,6 +262,13 @@ package org.robotlegs.base
 			preRemove();
 		}
 		
+		/**
+		 * Mobile framework work-around part #8
+		 *
+ 		 * <p><code>ViewNavigatorEvent.REMOVING</code> handler for this Mediator's View Component</p>
+		 *
+		 * @param event The Flex <code>ViewNavigatorEvent</code> event
+		 */
 		private function _onRemoving(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('activate', _onActivate);
