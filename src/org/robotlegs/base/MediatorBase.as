@@ -205,8 +205,8 @@ package org.robotlegs.base
 		private function _onActivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('activate', _onActivate, false);
-			IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
-			IEventDispatcher(viewComponent).addEventListener('deactivate', _onDeactivate);
+			IEventDispatcher(event.target).addEventListener('viewDeactivate', _onViewDeactivate);
+			IEventDispatcher(event.target).addEventListener('deactivate', _onDeactivate);
 			
 			removed = false;
 
