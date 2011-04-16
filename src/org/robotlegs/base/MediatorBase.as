@@ -13,6 +13,8 @@ package org.robotlegs.base
 	
 	import org.robotlegs.core.IMediator;
 	
+	import spark.components.View;
+	
 	/**
 	 * An abstract <code>IMediator</code> implementation
 	 */
@@ -27,6 +29,8 @@ package org.robotlegs.base
 		 * Mobile framework work-around part #1
 		 */
 		protected static var ViewClass:Class
+
+		protected static var ViewNavigatorApplicationBaseClass:Class
 		
 		/**
 		 * Flex framework work-around part #2
@@ -79,14 +83,18 @@ package org.robotlegs.base
 			
 			if (flexAvailable && (viewComponent is UIComponentClass))
 			{
-				if (mobileAvailable && (viewComponent is ViewClass))	//mediating a mobile View
+				if (mobileAvailable &&
+					(viewComponent is ViewClass) || (viewComponent is ViewNavigatorApplicationBaseClass))	//mediating a mobile View
 				{
-					if (!viewComponent['isActive'])
+					if ( (viewComponent is ViewClass) )
 					{
-						IEventDispatcher(viewComponent).addEventListener('viewActivate', _onViewActivate);
-					} else
-					{
-						IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
+						if (!viewComponent['isActive'])
+						{
+							IEventDispatcher(viewComponent).addEventListener('viewActivate', _onViewActivate);
+						} else
+						{
+							IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
+						}
 					}
 					IEventDispatcher(viewComponent).addEventListener('deactivate', _onDeactivate);
 					IEventDispatcher(viewComponent).addEventListener('removing', _onRemoving);
@@ -184,7 +192,16 @@ package org.robotlegs.base
 			{
 				// do nothing
 			}
-			return ViewClass != null;
+			
+			try
+			{
+				ViewNavigatorApplicationBaseClass = getDefinitionByName('spark.components.supportClasses::ViewNavigatorApplicationBase') as Class;
+			}
+			catch (error:Error)
+			{
+				// do nothing
+			}
+			return (ViewClass || ViewNavigatorApplicationBaseClass) ? true : false;
 		}
 		
 		/**
@@ -212,8 +229,12 @@ package org.robotlegs.base
 		private function _onActivate(event:Event):void
 		{
 			IEventDispatcher(event.target).removeEventListener('activate', _onActivate, false);
-			IEventDispatcher(event.target).addEventListener('viewDeactivate', _onViewDeactivate);
 			IEventDispatcher(event.target).addEventListener('deactivate', _onDeactivate);
+			
+			if (event.target is ViewClass)
+			{				
+				IEventDispatcher(event.target).addEventListener('viewDeactivate', _onViewDeactivate);
+			}
 			
 			removed = false;
 
@@ -231,6 +252,9 @@ package org.robotlegs.base
 		{
 			IEventDispatcher(event.target).removeEventListener('deactivate', _onDeactivate);
 			IEventDispatcher(event.target).addEventListener('activate', _onActivate);
+			
+			if (event.target is ViewNavigatorApplicationBaseClass)
+				preRemove();
 		}
 		
 		/**
