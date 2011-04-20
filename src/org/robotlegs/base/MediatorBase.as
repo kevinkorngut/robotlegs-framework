@@ -26,10 +26,13 @@ package org.robotlegs.base
 		protected static var UIComponentClass:Class;
 		
 		/**
-		 * Mobile framework work-around part #1
+		 * Mobile framework work-around part #1a
 		 */
 		protected static var ViewClass:Class
 
+		/**
+		 * Mobile framework work-around part #1b
+		 */
 		protected static var ViewNavigatorApplicationBaseClass:Class
 		
 		/**
@@ -38,7 +41,7 @@ package org.robotlegs.base
 		protected static const flexAvailable:Boolean = checkFlex();
 
 		/**
-		 * Flex framework work-around part #2
+		 * Mobile framework work-around part #2
 		 */
 		protected static const mobileAvailable:Boolean = checkMobile();
 		
@@ -83,10 +86,10 @@ package org.robotlegs.base
 			
 			if (flexAvailable && (viewComponent is UIComponentClass))
 			{
-				if (mobileAvailable &&
-					(viewComponent is ViewClass) || (viewComponent is ViewNavigatorApplicationBaseClass))	//mediating a mobile View
+				if (mobileAvailable &&				//if viewComponent is a View or extends ViewNavigatorApplicationBase 
+					(viewComponent is ViewClass) || (viewComponent is ViewNavigatorApplicationBaseClass))
 				{
-					if ( (viewComponent is ViewClass) )
+					if ( (viewComponent is ViewClass) )		//viewActivate, viewDeactivate, removing are not used in the ViewNavigators
 					{
 						if (!viewComponent['isActive'])
 						{
@@ -95,9 +98,9 @@ package org.robotlegs.base
 						{
 							IEventDispatcher(viewComponent).addEventListener('viewDeactivate', _onViewDeactivate);
 						}
+						IEventDispatcher(viewComponent).addEventListener('removing', _onRemoving);
 					}
 					IEventDispatcher(viewComponent).addEventListener('deactivate', _onDeactivate);
-					IEventDispatcher(viewComponent).addEventListener('removing', _onRemoving);
 				}
 				else if (!viewComponent['initialized'])
 				{
